@@ -1,0 +1,245 @@
+/* ==========================================
+   WEROAD WEB PLATFORM STYLES
+   ========================================== */
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+}
+
+body {
+  background-color: #f4f6f8;
+  color: #1e293b;
+  display: flex;
+  justify-content: center;
+  padding: 24px 0;
+}
+
+.app-container {
+  width: 100%;
+  max-width: 880px;
+  padding: 0 16px;
+}
+
+/* Header */
+.weroad-header-card {
+  background-color: #ffffff;
+  border-radius: 12px;
+  padding: 24px;
+  margin-bottom: 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+}
+
+.header-info h2 {
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: #0f172a;
+  margin-bottom: 4px;
+}
+
+.header-info p {
+  color: #64748b;
+  font-size: 0.875rem;
+}
+
+.download-pdf-btn {
+  background-color: #5b46e0;
+  color: #ffffff;
+  border: none;
+  padding: 10px 16px;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 0.85rem;
+  display: inline-flex;
+  align-items: center;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.download-pdf-btn:hover {
+  background-color: #4834c7;
+}
+
+/* AI Sync Button */
+.ai-sync-btn {
+  background: linear-gradient(135deg, #6366f1, #8b5cf6);
+  color: white;
+  border: none;
+  padding: 10px 18px;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 0.85rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  margin-bottom: 20px;
+  box-shadow: 0 2px 8px rgba(99, 102, 241, 0.25);
+  transition: opacity 0.2s, background-color 0.2s;
+}
+
+.ai-sync-btn:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.ai-sync-btn.synced {
+  background: #cbd5e1;
+  color: #475569;
+  box-shadow: none;
+  cursor: default;
+  opacity: 1;
+}
+
+/* Tab Navigation */
+.tabs-container {
+  display: flex;
+  gap: 24px;
+  border-bottom: 1px solid #e2e8f0;
+  margin-bottom: 20px;
+  padding-left: 8px;
+}
+
+.tab-btn {
+  background: none;
+  border: none;
+  padding: 12px 4px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #94a3b8;
+  cursor: pointer;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  position: relative;
+}
+
+.tab-btn.active {
+  color: #1e293b;
+}
+
+.tab-btn.active::after {
+  content: '';
+  position: absolute;
+  bottom: -1px;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background-color: #5b46e0;
+  border-radius: 3px 3px 0 0;
+}
+
+/* Cards */
+.day-card, .info-card {
+  background-color: #ffffff;
+  border-radius: 12px;
+  padding: 20px 24px;
+  margin-bottom: 16px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+}
+
+.day-header-top {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #475569;
+  margin-bottom: 4px;
+}
+
+.day-header-title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #0f172a;
+  margin-bottom: 10px;
+}
+
+.day-meta {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  color: #64748b;
+  font-size: 0.85rem;
+  margin-bottom: 14px;
+}
+
+.meta-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* Item Lists */
+.day-content-list {
+  list-style-type: disc;
+  padding-left: 20px;
+  border-top: 1px dashed #f1f5f9;
+  padding-top: 12px;
+}
+
+.day-item-row {
+  margin-bottom: 8px;
+  color: #334155;
+  font-size: 0.9rem;
+  line-height: 1.5;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+/* General Info Section */
+.info-card-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 12px;
+  color: #5b46e0;
+}
+
+.info-card-header h3 {
+  color: #0f172a;
+  font-size: 1.05rem;
+}
+
+.info-card-list {
+  list-style-type: disc;
+  padding-left: 20px;
+  color: #334155;
+  font-size: 0.9rem;
+  line-height: 1.6;
+}
+
+.notes-textarea {
+  width: 100%;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  padding: 12px;
+  font-size: 0.9rem;
+  color: #1e293b;
+  outline: none;
+  resize: vertical;
+}
+
+/* Source Badges */
+.source-badge {
+  display: inline-block;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 0.62rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  margin-left: 8px;
+  flex-shrink: 0;
+}
+
+.source-badge.telegram {
+  background-color: #0088cc;
+  color: #ffffff;
+}
+
+.source-badge.tip {
+  background-color: #f59e0b;
+  color: #ffffff;
+}
