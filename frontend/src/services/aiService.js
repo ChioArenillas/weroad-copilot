@@ -1,5 +1,4 @@
-
-export async function generateAIEnhancements({ itinerary }) {
+export async function generateAIEnhancements({ itinerary, telegram_chat = "" }) {
   try {
     const response = await fetch("http://127.0.0.1:8000/api/enrich-itinerary", {
       method: "POST",
@@ -8,6 +7,8 @@ export async function generateAIEnhancements({ itinerary }) {
       },
       body: JSON.stringify({
         travel_diary_base: itinerary,
+        telegram_chat: telegram_chat || "",
+        new_tips: "",
       }),
     });
 

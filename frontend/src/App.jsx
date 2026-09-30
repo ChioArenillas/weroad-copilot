@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Sparkles, Bed, Utensils, Download, AlertCircle, Phone, CreditCard, ShieldCheck } from 'lucide-react';
+import { Sparkles, Bed, Utensils, Download, AlertCircle, Phone, CreditCard, ShieldCheck, Upload, MessageCircle } from 'lucide-react';
 import { generateAIEnhancements } from './services/aiService';
 import './App.css';
 
@@ -7,6 +7,10 @@ export default function App() {
   const [activeTab, setActiveTab] = useState('ITINERARY');
   const [loadingEnrich, setLoadingEnrich] = useState(false);
   const [isSynced, setIsSynced] = useState(false);
+
+  const [customTelegramText, setCustomTelegramText] = useState('');
+  const [telegramFileName, setTelegramFileName] = useState('telegram_chat.json (Preloaded route export)');
+  const [isCustomChat, setIsCustomChat] = useState(false);
 
   // 1. GENERAL INFORMATION STATE
   const [generalInfo, setGeneralInfo] = useState([
@@ -202,94 +206,122 @@ export default function App() {
     }
   ]);
 
-  // AI ENRICHMENT HANDLER
-const handleAutoSync = async () => {
-  if (isSynced || loadingEnrich) return;
+  // Manejo de subida del archivo Telegram
+  const handleTelegramFileUpload = (e) => {
+    const file = e.target.files && e.target.files[0];
+    if (!file) return;
 
-  setLoadingEnrich(true);
+    setTelegramFileName(file.name);
+    setIsCustomChat(true);
 
-  try {
-    const { generalInfoUpdates, itineraryUpdates } = await generateAIEnhancements({
-      itinerary,
-    });
-
-    // 1. UPDATE GENERAL INFO SAFELY
-    if (generalInfoUpdates && generalInfoUpdates.length > 0) {
-      setGeneralInfo((prevInfo) => {
-        // Option A: Add new AI items into an "AI Coordinator Tips" section
-        const existingAiSectionIndex = prevInfo.findIndex(
-          (sec) => sec.categoryKey === "ai_tips"
-        );
-
-        if (existingAiSectionIndex !== -1) {
-          return prevInfo.map((sec, idx) =>
-            idx === existingAiSectionIndex
-              ? {
-                  ...sec,
-                  items: [
-                    ...sec.items,
-                    ...generalInfoUpdates.map((item) => ({
-                      id: item.id,
-                      text: item.text,
-                      source: item.source || "tip",
-                    })),
-                  ],
-                }
-              : sec
-          );
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      try {
+        const content = event.target ? event.target.result : '';
+        if (file.name.endsWith('.json')) {
+          const parsed = JSON.parse(content);
+          const messages = (parsed.messages || [])
+            .filter((m) => m.type === 'message' && typeof m.text === 'string')
+            .map((m) => `[${m.date}] ${m.from}: ${m.text}`)
+            .slice(-250)
+            .join('\n');
+          setCustomTelegramText(messages);
         } else {
-          // Create the section if it doesn't exist
-          return [
-            ...prevInfo,
-            {
-              categoryKey: "ai_tips",
-              title: "AI Coordinator Insights & Local Tips",
-              icon: <Sparkles size={18} />,
-              items: generalInfoUpdates.map((item) => ({
-                id: item.id,
-                text: item.text,
-                source: item.source || "tip",
-              })),
-            },
-          ];
+          setCustomTelegramText(content);
         }
-      });
-    }
+      } catch (err) {
+        console.error("Error reading Telegram export:", err);
+      }
+    };
+    reader.readAsText(file);
+  };
 
-    // 2. UPDATE ITINERARY SAFELY
-    if (itineraryUpdates && itineraryUpdates.length > 0) {
-      setItinerary((prevItinerary) =>
-        prevItinerary.map((dayObj) => {
-          const newItemsForDay = itineraryUpdates.filter(
-            (newItem) => newItem.day === dayObj.day
+  // AI ENRICHMENT HANDLER
+  const handleAutoSync = async () => {
+    if (isSynced || loadingEnrich) return;
+
+    setLoadingEnrich(true);
+
+    try {
+      const { generalInfoUpdates, itineraryUpdates } = await generateAIEnhancements({
+        itinerary,
+        telegram_chat: customTelegramText,
+      });
+
+      // 1. UPDATE GENERAL INFO SAFELY
+      if (generalInfoUpdates && generalInfoUpdates.length > 0) {
+        setGeneralInfo((prevInfo) => {
+          const existingAiSectionIndex = prevInfo.findIndex(
+            (sec) => sec.categoryKey === "ai_tips"
           );
 
-          if (newItemsForDay.length === 0) return dayObj;
+          if (existingAiSectionIndex !== -1) {
+            return prevInfo.map((sec, idx) =>
+              idx === existingAiSectionIndex
+                ? {
+                    ...sec,
+                    items: [
+                      ...sec.items,
+                      ...generalInfoUpdates.map((item) => ({
+                        id: item.id,
+                        text: item.text,
+                        source: item.source || "tip",
+                      })),
+                    ],
+                  }
+                : sec
+            );
+          } else {
+            return [
+              ...prevInfo,
+              {
+                categoryKey: "ai_tips",
+                title: "AI Coordinator Insights & Local Tips",
+                icon: <Sparkles size={18} />,
+                items: generalInfoUpdates.map((item) => ({
+                  id: item.id,
+                  text: item.text,
+                  source: item.source || "tip",
+                })),
+              },
+            ];
+          }
+        });
+      }
 
-          return {
-            ...dayObj,
-            items: [
-              ...dayObj.items,
-              ...newItemsForDay.map((n) => ({
-                id: n.id,
-                text: n.text,
-                source: n.source || "telegram",
-              })),
-            ],
-          };
-        })
-      );
+      // 2. UPDATE ITINERARY SAFELY
+      if (itineraryUpdates && itineraryUpdates.length > 0) {
+        setItinerary((prevItinerary) =>
+          prevItinerary.map((dayObj) => {
+            const newItemsForDay = itineraryUpdates.filter(
+              (newItem) => newItem.day === dayObj.day
+            );
+
+            if (newItemsForDay.length === 0) return dayObj;
+
+            return {
+              ...dayObj,
+              items: [
+                ...dayObj.items,
+                ...newItemsForDay.map((n) => ({
+                  id: n.id,
+                  text: n.text,
+                  source: n.source || "telegram",
+                })),
+              ],
+            };
+          })
+        );
+      }
+
+      setIsSynced(true);
+    } catch (error) {
+      console.error("Sync Error:", error);
+      alert(`Could not fetch AI recommendations: ${error.message}`);
+    } finally {
+      setLoadingEnrich(false);
     }
-
-    setIsSynced(true);
-  } catch (error) {
-    console.error("Sync Error:", error);
-    alert(`Could not fetch AI recommendations: ${error.message}`);
-  } finally {
-    setLoadingEnrich(false);
-  }
-};
-
+  };
 
   return (
     <div className="app-container">
@@ -329,6 +361,75 @@ const handleAutoSync = async () => {
       {/* ITINERARY TAB */}
       {activeTab === 'ITINERARY' && (
         <div className="itinerary-list">
+          {/* Zona de muestra / subida de Telegram */}
+          <div style={{
+            border: isCustomChat ? '2px solid #10b981' : '1px dashed #cbd5e1',
+            backgroundColor: isCustomChat ? '#f0fdf4' : '#ffffff',
+            borderRadius: '12px',
+            padding: '1rem',
+            marginBottom: '1rem',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            gap: '1rem'
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+              <div style={{
+                backgroundColor: isCustomChat ? '#dcfce7' : '#fee2e2',
+                color: isCustomChat ? '#16a34a' : '#ef4444',
+                padding: '8px',
+                borderRadius: '8px',
+                display: 'flex'
+              }}>
+                <MessageCircle size={20} />
+              </div>
+              <div style={{ textAlign: 'left' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                  <span style={{ fontWeight: 600, fontSize: '0.9rem', color: '#1e293b' }}>
+                    Telegram Route Community Source
+                  </span>
+                  <span style={{
+                    fontSize: '0.7rem',
+                    fontWeight: 600,
+                    padding: '2px 8px',
+                    borderRadius: '12px',
+                    backgroundColor: isCustomChat ? '#dcfce7' : '#f1f5f9',
+                    color: isCustomChat ? '#15803d' : '#64748b'
+                  }}>
+                    {isCustomChat ? 'Custom Export Active' : 'Default Sample Ready'}
+                  </span>
+                </div>
+                <div style={{ fontSize: '0.8rem', color: '#64748b', marginTop: '2px' }}>
+                  Current file: <code>{telegramFileName}</code>
+                </div>
+              </div>
+            </div>
+
+            <label style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+              backgroundColor: '#fff',
+              border: '1px solid #cbd5e1',
+              color: '#334155',
+              padding: '6px 12px',
+              borderRadius: '8px',
+              fontSize: '0.82rem',
+              fontWeight: 500,
+              cursor: 'pointer',
+              whiteSpace: 'nowrap'
+            }}>
+              <Upload size={14} />
+              Upload Chat (.json/.txt)
+              <input 
+                type="file" 
+                accept=".json,.txt" 
+                onChange={handleTelegramFileUpload} 
+                style={{ display: 'none' }} 
+              />
+            </label>
+          </div>
+
           <button 
             className={`ai-sync-btn ${isSynced ? 'synced' : ''}`} 
             onClick={handleAutoSync} 
@@ -370,43 +471,43 @@ const handleAutoSync = async () => {
       )}
 
       {/* GENERAL INFO TAB */}
-{activeTab === 'GENERAL INFO' && (
-  <div className="general-info-list">
-    <button 
-      className={`ai-sync-btn ${isSynced ? 'synced' : ''}`} 
-      onClick={handleAutoSync} 
-      disabled={loadingEnrich || isSynced}
-    >
-      <Sparkles size={16} /> 
-      {loadingEnrich 
-        ? "Syncing with Telegram & Tips..." 
-        : isSynced 
-          ? "Telegram & Tips Synced" 
-          : "Sync Telegram Alerts & Tips"}
-    </button>
+      {activeTab === 'GENERAL INFO' && (
+        <div className="general-info-list">
+          <button 
+            className={`ai-sync-btn ${isSynced ? 'synced' : ''}`} 
+            onClick={handleAutoSync} 
+            disabled={loadingEnrich || isSynced}
+          >
+            <Sparkles size={16} /> 
+            {loadingEnrich 
+              ? "Syncing with Telegram & Tips..." 
+              : isSynced 
+                ? "Telegram & Tips Synced" 
+                : "Sync Telegram Alerts & Tips"}
+          </button>
 
-    {generalInfo.map((section) => (
-      <div key={section.categoryKey} className="info-card">
-        <div className="info-card-header">
-          {section.icon}
-          <h3>{section.title}</h3>
-        </div>
-        <ul className="info-card-list">
-          {section.items && section.items.map((item) => (
-            <li key={item.id} className="info-item-row">
-              {item.source !== 'travel_diary' && (
-                <span className={`source-badge ${item.source}`}>
-                  {item.source}
-                </span>
-              )}
-              <span>{item.text}</span>
-            </li>
+          {generalInfo.map((section) => (
+            <div key={section.categoryKey} className="info-card">
+              <div className="info-card-header">
+                {section.icon}
+                <h3>{section.title}</h3>
+              </div>
+              <ul className="info-card-list">
+                {section.items && section.items.map((item) => (
+                  <li key={item.id} className="info-item-row">
+                    {item.source !== 'travel_diary' && (
+                      <span className={`source-badge ${item.source}`}>
+                        {item.source}
+                      </span>
+                    )}
+                    <span>{item.text}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
           ))}
-        </ul>
-      </div>
-    ))}
-  </div>
-)}
+        </div>
+      )}
 
       {/* YOUR NOTES TAB */}
       {activeTab === 'YOUR NOTES' && (
