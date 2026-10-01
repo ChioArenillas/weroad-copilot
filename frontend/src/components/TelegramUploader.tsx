@@ -56,10 +56,22 @@ export const TelegramUploader: React.FC<TelegramUploaderProps> = ({
               {isCustomChat ? 'Custom Export Active' : 'Default Sample Ready'}
             </span>
           </div>
-          <div style={{ fontSize: '0.8rem', color: '#64748b', marginTop: '2px' }}>
-            Current file: <code>{fileName}</code>
-          </div>
-        </div>
+<div style={{ fontSize: '0.8rem', color: '#64748b', marginTop: '2px' }}>
+  Current file:{' '}
+  <code
+    style={{
+      backgroundColor: '#f1f5f9', 
+      color: '#0f172a',           
+      padding: '2px 6px',
+      borderRadius: '4px',
+      fontSize: '0.78rem',
+      fontFamily: 'monospace',
+      border: '1px solid #e2e8f0'
+    }}
+  >
+    {fileName}
+  </code>
+</div>        </div>
       </div>
 
       <label

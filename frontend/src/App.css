@@ -203,21 +203,33 @@ body {
 }
 
 .info-card-header h3 {
-  color: #0f172a;
+  color: #dbdcde;
   font-size: 1.05rem;
 }
 
 .notes-textarea {
   width: 100%;
-  border: 1px solid #cbd5e1;
+  background-color: #ffffff !important;
+  color: #64748b !important;           
+  border: 1px solid #e2e8f0 !important; 
   border-radius: 8px;
-  padding: 12px;
+  padding: 1rem;
   font-size: 0.9rem;
-  color: #1e293b;
-  outline: none;
+  line-height: 1.5;
   resize: vertical;
+  outline: none;
+  font-family: inherit;
+  box-sizing: border-box;
 }
 
+.notes-textarea:focus {
+  border-color: #cbd5e1 !important;
+  box-shadow: 0 0 0 2px rgba(226, 232, 240, 0.5);
+}
+
+.notes-textarea::placeholder {
+  color: #94a3b8;                      
+}
 /* Source Badges */
 .source-badge {
   display: inline-flex;
